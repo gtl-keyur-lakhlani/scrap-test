@@ -13,18 +13,10 @@ class EbaySpider(scrapy.Spider):
 
     def parse(self, response):
         next_page_url = response.css('a[rel=next]::attr(href)').extract_first()
-        if(next_page_url != '' and next_page_url != 'None'):
-            yield{
-                'link' : next_page_url
-            }
-        else:
-            yield{
-                'link' : false+'->'+next_page_url
-            }    
-        #yield{
-            #'name' : response.css('h1.it-ttl::text').extract(),
-         #   'link' : response.css('a[rel=next]::attr(href)').extract_first()
-        #}    
+        yield{
+            'link' : next_page_url
+        }
+            
       
     
                  
