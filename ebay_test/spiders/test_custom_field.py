@@ -41,7 +41,7 @@ class CustomSpider(scrapy.Spider):
     def parse_content(self, response):
         
 
-        next_page = response.xpath(".//*[@id='w7-w1']/a[2]//@href").extract()
+        next_page = response.xpath(".//*[@id='w7-w1']/a[2]").extract()
         yield {
             'next_page' : next_page
         }    
