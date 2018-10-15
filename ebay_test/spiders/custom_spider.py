@@ -1,7 +1,7 @@
 import scrapy
 import re
 
-from customfield.items import CustomfieldItem
+from ebay_test.items import CustomfieldItem
 
 
 class CustomSpider(scrapy.Spider):
