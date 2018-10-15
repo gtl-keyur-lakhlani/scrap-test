@@ -5,7 +5,7 @@ from ebay_test.items import CustomfieldItem
 
 
 class CustomSpider(scrapy.Spider):
-    name = "custom"
+    name = "test_custom"
     start_urls = ["https://www.ebay.com/b/Business-Industrial/12576/bn_1853744"]
 
     def parse(self, response):
