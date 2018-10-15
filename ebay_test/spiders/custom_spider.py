@@ -62,8 +62,8 @@ class CustomSpider(scrapy.Spider):
 
             yield scrapy.Request(url, callback=self.parse_dir_contents, meta={'listing_url':listing_url, 'thumbnail_url':thumbnail_url})
 
-        next_page = response.xpath(".//*[@id='w7-w1']/a[2]//@href").extract()
-
+        next_page = response.xpath(".//*[@id='w7-w1']/a[2]//@href").extract_first()
+        
         if next_page:
             yield scrapy.Request(next_page, callback=self.parse_content)
 
