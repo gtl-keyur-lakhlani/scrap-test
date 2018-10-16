@@ -71,10 +71,10 @@ class CustomSpider(scrapy.Spider):
 
         # next_page = response.xpath(".//*[@id='w7-w1']/a[2]//@href").extract_first()
 
-        next_page = response.xpath("//a[contains(@class, 'ebayui-pagination__control')]//@href").extract_first()
+            next_page = response.xpath("//a[contains(@class, 'ebayui-pagination__control')]//@href").extract_first()
 
-        if next_page:
-            yield scrapy.Request(next_page, callback=self.parse_content)
+            if next_page:
+                yield scrapy.Request(next_page, callback=self.parse_content)
 
     def parse_dir_contents(self, response):
         item = CustomfieldItem()
