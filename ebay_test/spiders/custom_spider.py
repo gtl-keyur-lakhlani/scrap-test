@@ -11,7 +11,13 @@ class CustomSpider(scrapy.Spider):
     start_urls = ["https://www.ebay.com/b/Business-Industrial/12576/bn_1853744"]
 
     def parse(self, response):
-        
+        # global category
+        # category = response.xpath(
+            # "//*[@id='mainContent']/section[2]/div[2]/a[1]/descendant::text()").extract_first()
+
+        # one_page = response.xpath(
+            # "//*[@id='mainContent']/section[2]/div[2]/a[1]//@href").extract_first()
+
         category_listing = response.xpath(".//*[@id='mainContent']/section[2]/div[2]/a/div/text()").extract()
 
         a = 0
@@ -19,9 +25,14 @@ class CustomSpider(scrapy.Spider):
             one_page = cat.extract()
             category = category_listing[a]
             a = a + 1
+            # yield scrapy.Request(one_page, callback=self.second_page)
             yield scrapy.Request(one_page, callback=self.second_page, meta={'category': category})
 
     def second_page(self, response):
+        # global sub_category
+        # sub_category = response.xpath(
+            # ".//*[@id='mainContent']/section[2]/div[2]/a[1]/descendant::text()").extract_first()
+
         category = response.meta['category']
         sub_category_listing = response.xpath(".//*[@id='mainContent']/section[2]/div[2]/a/div/text()").extract()
 
@@ -53,7 +64,7 @@ class CustomSpider(scrapy.Spider):
 
     def parse_content(self, response):
         category = response.meta['category']
-        sub_category = response.meta['sub_category']
+        sub_category = response.xpath("//nav[contains(@class, 'b-breadcrumb')]/ol/li/span/text()").extract_first()
 
         image = response.xpath(
             "//div[contains(@class, 's-item__image-wrapper')]//img[contains(@class, 's-item__image-img')]").extract()
@@ -79,7 +90,11 @@ class CustomSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parse_dir_contents, meta={'listing_url': listing_url,
                                                                               'thumbnail_url': thumbnail_url,
                                                                               'category': category, 'sub_category': sub_category})
-       
+
+        # next_page = response.xpath("//a[contains(@class, 'ebayui-pagination__control')]//@href").extract_first()
+        #
+        # if next_page:
+        #     yield scrapy.Request(next_page)
 
     def parse_dir_contents(self, response):
         item = CustomfieldItem()
@@ -167,7 +182,11 @@ class CustomSpider(scrapy.Spider):
                     item[value] = table_param[i]
                 if 'Year' in table_param[i]:
                     i = i + 1
-                    item['Year'] = table_param[i]
+                    try:
+                        if table_param[i]:
+                            item['Year'] = table_param[i]
+                    except Exception as e:
+                        pass
             i = i + 1
 
         yield item

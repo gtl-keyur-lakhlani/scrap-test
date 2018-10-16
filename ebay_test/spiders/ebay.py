@@ -23,12 +23,14 @@ class EbaySpider(scrapy.Spider):
            detail_href = items.css('a.s-item__link::attr(href)').extract_first()
            listing_url = response.url
            thumbnail_url = items.css('img.s-item__image-img::attr(src)').extract_first()
-           categories = items.css('.b-breadcrumb__text').extract()
-           category = ''
-           sub_category = ''
-           if (len(categories) > 0):
-               category = categories(len(categories)-2)
-               sub_category = categories(len(categories)-1)
+           #categories = items.css('a.b-breadcrumb__text::attr(hr)').extract()
+           categories = response.xpath('html/body/div[3]/div[2]/nav/ol/li/a').extract()
+           cat_len = len(categories)
+           category = categories[cat_len]
+           sub_category = response.xpath("//nav[contains(@class, 'b-breadcrumb')]/ol/li/span/text()").extract_first()
+           #if (len(categories) > 0):
+           #    category = categories(len(categories)-2)
+           #    sub_category = categories(len(categories)-1)
                
            if detail_href:
                yield  scrapy.Request(url=detail_href, callback=self.parse_detail, meta={'listing_url': listing_url,
@@ -80,22 +82,41 @@ class EbaySpider(scrapy.Spider):
         item['Images_URL'] = response.xpath(
             ".//*[@id='vi_main_img_fs']/ul/li/table/tr/td/div/img/@src").extract()
 
-        vendor_detail = response.xpath(
-            ".//*[@id='itemLocation']/div[2]/div/div[2]/span/text()").extract_first().split(
-            ',')
+        vendor_detail = response.xpath(".//*[@id='itemLocation']/div[2]/div/div[2]/span/text()").extract_first()
 
-        details = len(vendor_detail)
+        if vendor_detail:
+            vendor_detail = vendor_detail.split(',')
+            details = len(vendor_detail)
 
-        if details:
-            if details == 3:
-                item['Vendor_City'] = vendor_detail[0]
-                item['Vendor_State'] = vendor_detail[1]
-                item['Vendor_Country'] = vendor_detail[2]
-            elif details == 2:
-                item['Vendor_State'] = vendor_detail[0]
-                item['Vendor_Country'] = vendor_detail[1]
-            else:
-                item['Vendor_Country'] = vendor_detail[0]
+            if details:
+                if details == 3:
+                    item['Vendor_City'] = vendor_detail[0]
+                    item['Vendor_State'] = vendor_detail[1]
+                    item['Vendor_Country'] = vendor_detail[2]
+                elif details == 2:
+                    item['Vendor_State'] = vendor_detail[0]
+                    item['Vendor_Country'] = vendor_detail[1]
+                else:
+                    item['Vendor_Country'] = vendor_detail[0]
+
+        else:
+            vendor_detail = response.xpath(
+                ".//*[@id='mainContent']/div[1]/table/tr[8]/td/div/div[2]/div[2]/text()").extract_first()
+
+            if vendor_detail:
+                vendor_detail = vendor_detail.split(',')
+                details = len(vendor_detail)
+
+                if details:
+                    if details == 3:
+                        item['Vendor_City'] = vendor_detail[0]
+                        item['Vendor_State'] = vendor_detail[1]
+                        item['Vendor_Country'] = vendor_detail[2]
+                    elif details == 2:
+                        item['Vendor_State'] = vendor_detail[0]
+                        item['Vendor_Country'] = vendor_detail[1]
+                    else:
+                        item['Vendor_Country'] = vendor_detail[0]
 
         parameter_array = ['ExcavatorType', 'SerialNumber', 'Make', 'Model', 'CustomBundle', 'UPC', 'Hours']
 
@@ -120,7 +141,11 @@ class EbaySpider(scrapy.Spider):
                     item[value] = table_param[i]
                 if 'Year' in table_param[i]:
                     i = i + 1
-                    item['Year'] = table_param[i]
+                    try:
+                        if table_param[i]:
+                            item['Year'] = table_param[i]
+                    except Exception as e:
+                        pass
             i = i + 1
 
         yield item
