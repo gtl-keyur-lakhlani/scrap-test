@@ -23,10 +23,17 @@ class CustomSpider(scrapy.Spider):
         sub_category = response.xpath(
             ".//*[@id='mainContent']/section[2]/div[2]/a[1]/descendant::text()").extract_first()
 
+        # sub_category_list = response.xpath(".//*[@id='mainContent']/section[2]/div[2]/a//@href").extract()
+        #
+        # for sub_link in response.xpath(".//*[@id='mainContent']/section[2]/div[2]/a//@href"):
+        #     sub_category = sub_link.extract()
+        #     yield scrapy.Request(sub_category, callback=self.third_page)
+
         other_page = response.xpath(
             ".//*[@id='mainContent']/section[2]/div[2]/a[1]//@href").extract_first()
 
-        yield scrapy.Request(other_page, callback=self.third_page)
+        # yield scrapy.Request(other_page, callback=self.third_page)
+        yield scrapy.Request(other_page, callback=self.parse_content)
 
     def third_page(self, response):
         global company
@@ -62,8 +69,10 @@ class CustomSpider(scrapy.Spider):
 
             yield scrapy.Request(url, callback=self.parse_dir_contents, meta={'listing_url':listing_url, 'thumbnail_url':thumbnail_url})
 
-        next_page = response.xpath(".//*[@id='w7-w1']/a[2]//@href").extract_first()
-        
+        # next_page = response.xpath(".//*[@id='w7-w1']/a[2]//@href").extract_first()
+
+        next_page = response.xpath("//a[contains(@class, 'ebayui-pagination__control')]//@href").extract_first()
+
         if next_page:
             yield scrapy.Request(next_page, callback=self.parse_content)
 
@@ -74,7 +83,7 @@ class CustomSpider(scrapy.Spider):
 
         item['Sub_Category'] = sub_category
 
-        item['Company'] = company
+        # item['Company'] = company
 
         item['Listing_Title'] = response.xpath(
             "//h1[contains(@id, 'itemTitle')]/text()").extract_first()

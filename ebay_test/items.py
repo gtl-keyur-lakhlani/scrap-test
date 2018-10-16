@@ -12,7 +12,7 @@ class CustomfieldItem(scrapy.Item):
     # define the fields for your item here like:
     Category = scrapy.Field()
     Sub_Category = scrapy.Field()
-    Company = scrapy.Field()
+    # Company = scrapy.Field()
     Listing_Title = scrapy.Field()
     Year = scrapy.Field()
     ExcavatorType = scrapy.Field()
