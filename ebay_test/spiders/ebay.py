@@ -24,8 +24,8 @@ class EbaySpider(scrapy.Spider):
            category = ''
            sub_category = ''
            if (len(categories) > 0):
-               category = categories(len(categories)-1)
-               sub_category = categories(len(categories)-2)
+               category = categories(len(categories)-2)
+               sub_category = categories(len(categories)-1)
                
            if detail_href:
                yield  scrapy.Request(url=detail_href, callback=self.parse_detail, meta={'listing_url': listing_url,
