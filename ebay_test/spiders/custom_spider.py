@@ -85,11 +85,14 @@ class CustomSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parse_dir_contents, meta={'listing_url': listing_url,
                                                                               'thumbnail_url': thumbnail_url,
                                                                               'category': category, 'sub_category': sub_category})
+            
+        next_page_url = response.css('a[rel=next]::attr(href)').extract_first()
+        if(next_page_url != ''):
+               yield  scrapy.Request(url=next_page_url, callback=self.parse_content) 
+        #next_page = response.xpath("//a[contains(@class, 'ebayui-pagination__control')]//@href").extract_first()
 
-        next_page = response.xpath("//a[contains(@class, 'ebayui-pagination__control')]//@href").extract_first()
-
-        if next_page:
-            yield scrapy.Request(next_page, callback=self.parse_content)
+        #if next_page:
+        #    yield scrapy.Request(next_page, callback=self.parse_content)
 
     def parse_dir_contents(self, response):
         item = CustomfieldItem()
