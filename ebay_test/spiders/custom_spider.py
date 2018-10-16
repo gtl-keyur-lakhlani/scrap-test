@@ -1,4 +1,6 @@
 import scrapy
+from scrapy.contrib.spiders import Rule
+from scrapy.linkextractors import LinkExtractor
 import re
 
 from ebay_test.items import CustomfieldItem
@@ -9,13 +11,7 @@ class CustomSpider(scrapy.Spider):
     start_urls = ["https://www.ebay.com/b/Business-Industrial/12576/bn_1853744"]
 
     def parse(self, response):
-        # global category
-        # category = response.xpath(
-            # "//*[@id='mainContent']/section[2]/div[2]/a[1]/descendant::text()").extract_first()
-
-        # one_page = response.xpath(
-            # "//*[@id='mainContent']/section[2]/div[2]/a[1]//@href").extract_first()
-
+        
         category_listing = response.xpath(".//*[@id='mainContent']/section[2]/div[2]/a/div/text()").extract()
 
         a = 0
@@ -23,14 +19,9 @@ class CustomSpider(scrapy.Spider):
             one_page = cat.extract()
             category = category_listing[a]
             a = a + 1
-            # yield scrapy.Request(one_page, callback=self.second_page)
             yield scrapy.Request(one_page, callback=self.second_page, meta={'category': category})
 
     def second_page(self, response):
-        # global sub_category
-        # sub_category = response.xpath(
-            # ".//*[@id='mainContent']/section[2]/div[2]/a[1]/descendant::text()").extract_first()
-
         category = response.meta['category']
         sub_category_listing = response.xpath(".//*[@id='mainContent']/section[2]/div[2]/a/div/text()").extract()
 
@@ -56,6 +47,9 @@ class CustomSpider(scrapy.Spider):
             ".//*[@id='w6-xCarousel-x-carousel-items']/ul/li[1]/a/@href").extract_first()
 
         yield scrapy.Request(page, callback=self.parse_content)
+
+    rules = (Rule(LinkExtractor(allow=(), restrict_xpaths=(
+        '//a[contains(@class, "ebayui-pagination__control")]//@href',)), callback="parse_content", follow=True),)
 
     def parse_content(self, response):
         category = response.meta['category']
@@ -85,14 +79,7 @@ class CustomSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parse_dir_contents, meta={'listing_url': listing_url,
                                                                               'thumbnail_url': thumbnail_url,
                                                                               'category': category, 'sub_category': sub_category})
-            
-        next_page_url = response.css('a[rel=next]::attr(href)').extract_first()
-        if(next_page_url != ''):
-               yield  scrapy.Request(url=next_page_url, callback=self.parse_content) 
-        #next_page = response.xpath("//a[contains(@class, 'ebayui-pagination__control')]//@href").extract_first()
-
-        #if next_page:
-        #    yield scrapy.Request(next_page, callback=self.parse_content)
+       
 
     def parse_dir_contents(self, response):
         item = CustomfieldItem()
@@ -107,8 +94,7 @@ class CustomSpider(scrapy.Spider):
 
         # item['Company'] = company
 
-        item['Listing_Title'] = response.xpath(
-            "//h1[contains(@id, 'itemTitle')]/text()").extract_first()
+        item['Listing_Title'] = response.xpath("//h1[contains(@id, 'itemTitle')]/text()").extract_first()
 
         item['Listing_URL'] = response.meta['listing_url']
 
@@ -118,28 +104,45 @@ class CustomSpider(scrapy.Spider):
 
         item['Vendor_Name'] = response.xpath(".//*[@id='mbgLink']/span/text()").extract_first()
 
-        item['Vendor_URL'] = response.xpath(
-            ".//*[@id='mbgLink']//@href").extract_first()
+        item['Vendor_URL'] = response.xpath(".//*[@id='mbgLink']//@href").extract_first()
 
-        item['Images_URL'] = response.xpath(
-            ".//*[@id='vi_main_img_fs']/ul/li/table/tr/td/div/img/@src").extract()
+        item['Images_URL'] = response.xpath(".//*[@id='vi_main_img_fs']/ul/li/table/tr/td/div/img/@src").extract()
 
-        vendor_detail = response.xpath(
-            ".//*[@id='itemLocation']/div[2]/div/div[2]/span/text()").extract_first().split(
-            ',')
+        vendor_detail = response.xpath(".//*[@id='itemLocation']/div[2]/div/div[2]/span/text()").extract_first()
 
-        details = len(vendor_detail)
+        if vendor_detail:
+            vendor_detail = vendor_detail.split(',')
+            details = len(vendor_detail)
 
-        if details:
-            if details == 3:
-                item['Vendor_City'] = vendor_detail[0]
-                item['Vendor_State'] = vendor_detail[1]
-                item['Vendor_Country'] = vendor_detail[2]
-            elif details == 2:
-                item['Vendor_State'] = vendor_detail[0]
-                item['Vendor_Country'] = vendor_detail[1]
-            else:
-                item['Vendor_Country'] = vendor_detail[0]
+            if details:
+                if details == 3:
+                    item['Vendor_City'] = vendor_detail[0]
+                    item['Vendor_State'] = vendor_detail[1]
+                    item['Vendor_Country'] = vendor_detail[2]
+                elif details == 2:
+                    item['Vendor_State'] = vendor_detail[0]
+                    item['Vendor_Country'] = vendor_detail[1]
+                else:
+                    item['Vendor_Country'] = vendor_detail[0]
+
+        else:
+            vendor_detail = response.xpath(
+                ".//*[@id='mainContent']/div[1]/table/tr[8]/td/div/div[2]/div[2]/text()").extract_first()
+
+            if vendor_detail:
+                vendor_detail = vendor_detail.split(',')
+                details = len(vendor_detail)
+
+                if details:
+                    if details == 3:
+                        item['Vendor_City'] = vendor_detail[0]
+                        item['Vendor_State'] = vendor_detail[1]
+                        item['Vendor_Country'] = vendor_detail[2]
+                    elif details == 2:
+                        item['Vendor_State'] = vendor_detail[0]
+                        item['Vendor_Country'] = vendor_detail[1]
+                    else:
+                        item['Vendor_Country'] = vendor_detail[0]
 
         parameter_array = ['ExcavatorType', 'SerialNumber', 'Make', 'Model', 'CustomBundle', 'UPC', 'Hours']
 
