@@ -24,9 +24,9 @@ class EbaySpider(scrapy.Spider):
            listing_url = response.url
            thumbnail_url = items.css('img.s-item__image-img::attr(src)').extract_first()
            #categories = items.css('a.b-breadcrumb__text::attr(hr)').extract()
-           categories = response.xpath('html/body/div[3]/div[2]/nav/ol/li/a').extract()
+           categories = response.xpath("//nav[contains(@class, 'b-breadcrumb')]/ol/li/a/text()").extract()
            cat_len = len(categories)
-           category = categories[cat_len]
+           category = categories[cat_len - 1]
            sub_category = response.xpath("//nav[contains(@class, 'b-breadcrumb')]/ol/li/span/text()").extract_first()
            #if (len(categories) > 0):
            #    category = categories(len(categories)-2)
