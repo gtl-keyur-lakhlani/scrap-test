@@ -21,7 +21,7 @@ class EbaySpider(scrapy.Spider):
         for items in response.css('li.s-item'):
            item_list_page = 1
            detail_href = items.css('a.s-item__link::attr(href)').extract_first()
-           listing_url = response.url
+           #listing_url = response.url
            thumbnail_url = items.css('img.s-item__image-img::attr(src)').extract_first()
            #categories = items.css('a.b-breadcrumb__text::attr(hr)').extract()
            categories = response.xpath("//nav[contains(@class, 'b-breadcrumb')]/ol/li/a/text()").extract()
@@ -33,8 +33,7 @@ class EbaySpider(scrapy.Spider):
            #    sub_category = categories(len(categories)-1)
                
            if detail_href:
-               yield  scrapy.Request(url=detail_href, callback=self.parse_detail, meta={'listing_url': listing_url,
-                                                                              'thumbnail_url': thumbnail_url,
+               yield  scrapy.Request(url=detail_href, callback=self.parse_detail, meta={'thumbnail_url': thumbnail_url,
                                                                               'category': category, 'sub_category': sub_category})
         
         next_page_url = response.css('a[rel=next]::attr(href)').extract_first()
@@ -64,9 +63,7 @@ class EbaySpider(scrapy.Spider):
         item['Listing_Title'] = response.xpath(
             "//h1[contains(@id, 'itemTitle')]/text()").extract_first()
 
-        item['Listing_URL'] = ''
-        if response.meta['listing_url']:
-            item['Listing_URL'] = response.meta['listing_url']
+        item['Listing_URL'] = response.url
 
         item['Thumbnail_URL'] = ''
         if response.meta['thumbnail_url']:
