@@ -13,7 +13,7 @@ BOT_NAME = 'ebay_test'
 
 SPIDER_MODULES = ['ebay_test.spiders']
 NEWSPIDER_MODULE = 'ebay_test.spiders'
-
+CLOSESPIDER_PAGECOUNT = 50
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'ebay_test (+http://www.yourdomain.com)'
